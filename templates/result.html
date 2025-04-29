@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Group UID Result</title>
+</head>
+<body>
+    <h2>Group List:</h2>
+    <ul>
+        {% for group in group_details %}
+            <li>{{ group.name }} - {{ group.uid }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
