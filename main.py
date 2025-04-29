@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request
+'__main__':
+    app.run(host='0.0.0.0', port=5000)from flask import Flask, render_template, request
 import requests
 
 app = Flask(__name__)
@@ -38,4 +39,4 @@ def get_all_group_uids():
 
 # Flask app ko run karte waqt port ka use render ke environment ke hisaab se hota hai
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
