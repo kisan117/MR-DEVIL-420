@@ -1,87 +1,120 @@
 from flask import Flask, request, render_template_string
-import os, time, random
 import requests
+import re
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-html_form = """
+def get_token_from_cookie(cookie):
+    try:
+        headers = {
+            "cookie": cookie,
+            "user-agent": "Mozilla/5.0"
+        }
+        res = requests.get("https://business.facebook.com/business_locations", headers=headers)
+        token = re.search(r'"EAAG\w+', res.text)
+        return token.group(0) if token else None
+    except:
+        return None
+
+def is_token_valid(token):
+    try:
+        url = f"https://graph.facebook.com/v18.0/me?access_token={token}"
+        res = requests.get(url)
+        if res.status_code == 200:
+            return True
+    except:
+        pass
+    return False
+
+def get_user_info(token):
+    try:
+        url = f"https://graph.facebook.com/v18.0/me?fields=id,name&access_token={token}"
+        res = requests.get(url)
+        if res.status_code == 200:
+            data = res.json()
+            return data.get("id"), data.get("name")
+    except:
+        pass
+    return None, None
+
+def get_user_groups(token):
+    try:
+        url = f"https://graph.facebook.com/v18.0/me/groups?access_token={token}"
+        res = requests.get(url)
+        if res.status_code == 200:
+            data = res.json().get("data", [])
+            groups = [{"id": g["id"], "name": g["name"]} for g in data]
+            return groups
+    except:
+        pass
+    return []
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    uid = name = token = error = None
+    groups = []
+    if request.method == 'POST':
+        access_token = request.form.get("access_token")
+        cookie = request.form.get("cookie")
+
+        if not access_token and cookie:
+            token = get_token_from_cookie(cookie)
+        else:
+            token = access_token
+
+        if not token:
+            error = "Token not found. Please enter a valid token or cookie."
+        else:
+            # Check if token is valid
+            if not is_token_valid(token):
+                error = "Invalid token. Please check your token or cookie."
+            else:
+                uid, name = get_user_info(token)
+                if not uid:
+                    error = "Failed to retrieve user info."
+                else:
+                    groups = get_user_groups(token)
+
+    return render_template_string("""
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MR DEVIL GROUP SERVER</title>
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        input, label, textarea { display: block; margin: 10px 0; width: 100%%; max-width: 500px; }
-    </style>
+    <title>MR DEVIL UID + Group Extractor</title>
 </head>
 <body>
-    <h2>MR DEVIL GROUP MESSAGE SERVER</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <label>Enter Group UID:</label>
-        <input type="text" name="group_uid" required>
+    <h2>MR DEVIL - Token to UID + Group List</h2>
+    <form method="POST">
+        <label>Access Token (optional):</label><br>
+        <textarea name="access_token" rows="3" cols="60"></textarea><br><br>
 
-        <label>Enter Single Token (Optional):</label>
-        <textarea name="single_token" rows="3" placeholder="Paste access token here..."></textarea>
+        <label>OR Facebook Cookie (optional):</label><br>
+        <textarea name="cookie" rows="4" cols="60"></textarea><br><br>
 
-        <label>Or Upload Token File (1 token per line):</label>
-        <input type="file" name="token_file">
-
-        <label>Upload Message File (1 message per line):</label>
-        <input type="file" name="message_file" required>
-
-        <input type="submit" value="Start Messaging">
+        <button type="submit">Get Info</button>
     </form>
+
+    {% if token %}
+        <p><strong>Access Token:</strong><br>{{ token }}</p>
+    {% endif %}
+    {% if uid and name %}
+        <h3>User Info:</h3>
+        <p><strong>Name:</strong> {{ name }}</p>
+        <p><strong>UID:</strong> {{ uid }}</p>
+    {% endif %}
+
+    {% if groups %}
+        <h3>Groups Joined:</h3>
+        <ul>
+        {% for group in groups %}
+            <li><strong>{{ group.name }}</strong> — UID: {{ group.id }}</li>
+        {% endfor %}
+        </ul>
+    {% elif error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
 </body>
 </html>
-"""
+    """, uid=uid, name=name, token=token, groups=groups, error=error)
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        group_uid = request.form.get("group_uid")
-        single_token = request.form.get("single_token").strip()
-        token_file = request.files.get("token_file")
-        message_file = request.files.get("message_file")
-
-        # Handle token(s)
-        tokens = []
-        if single_token:
-            tokens.append(single_token)
-        elif token_file:
-            token_path = os.path.join(UPLOAD_FOLDER, "tokens_uploaded.txt")
-            token_file.save(token_path)
-            with open(token_path, 'r') as tf:
-                tokens = [line.strip() for line in tf if line.strip()]
-        else:
-            return "Please provide at least one token."
-
-        # Handle messages
-        message_path = os.path.join(UPLOAD_FOLDER, "messages_uploaded.txt")
-        message_file.save(message_path)
-        with open(message_path, 'r') as mf:
-            messages = [line.strip() for line in mf if line.strip()]
-
-        result = []
-        for token in tokens:
-            msg = random.choice(messages)
-            url = f"https://graph.facebook.com/{group_uid}/feed"
-            payload = {
-                'message': msg,
-                'access_token': token
-            }
-            r = requests.post(url, data=payload)
-            if r.status_code == 200:
-                result.append(f"<b>Message sent:</b> {msg}")
-            else:
-                result.append(f"<b>Failed for token:</b> {token[:10]}...")
-
-            time.sleep(2)
-
-        return "<br>".join(result)
-
-    return render_template_string(html_form)
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)  # Here the port is added (you can change it)
