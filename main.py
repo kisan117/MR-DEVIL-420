@@ -44,7 +44,7 @@ def get_user_groups(token):
         res = requests.get(url)
         if res.status_code == 200:
             data = res.json().get("data", [])
-            groups = [{"id": g["id"], "name": g["name"]} for g in data]
+            groups = [{"id": group["id"], "name": group["name"]} for group in data]
             return groups
     except:
         pass
@@ -107,7 +107,7 @@ def index():
         <h3>Groups Joined:</h3>
         <ul>
         {% for group in groups %}
-            <li><strong>{{ group.name }}</strong> — UID: {{ group.id }}</li>
+            <li><strong>{{ group.name }}</strong> — Group UID: {{ group.id }}</li>
         {% endfor %}
         </ul>
     {% elif error %}
