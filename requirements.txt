@@ -1,5 +1,3 @@
-Flask
-selenium
+flask
 requests
-werkzeug
-gunicorn
+beautifulsoup4
