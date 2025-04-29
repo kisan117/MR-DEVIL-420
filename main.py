@@ -1,7 +1,5 @@
 from flask import Flask, request, render_template_string
 import requests
-import re
-import os
 
 app = Flask(__name__)
 
@@ -93,53 +91,33 @@ html_template = """
     </div>
 
     <footer>
-        <p style="color: #FF5733;">Group UID Finder</p>
-        <p>Powered by MR DEVIL</p>
+        <p style="color: #FF5733;">Post Loader Tool</p>
+        <p>AFFAN OFFICAL</p>
     </footer>
 </body>
 </html>
 """
 
-def get_group_info(token):
-    headers = {
-        'Authorization': f'Bearer {token}'
-    }
-
-    try:
-        # Make an API request to get group info (replace with actual API endpoint to fetch group data)
-        url = 'https://graph.facebook.com/me/groups'  # This will fetch groups the user is part of
-        response = requests.get(url, headers=headers)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if 'data' in data:
-                # Assuming first group from the response
-                group_info = data['data'][0]
-                uid = group_info.get('id', 'Not Found')
-                group_name = group_info.get('name', 'Unknown')
-
-                return uid, group_name
-            else:
-                return None, "No groups found or invalid token."
-        else:
-            return None, "Failed to retrieve groups. Please check the token."
-    except Exception as e:
-        return None, str(e)
-
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def get_group_uid():
     if request.method == 'POST':
-        token = request.form.get('token')
+        token = request.form['token']
+        url = f'https://graph.facebook.com/v15.0/me/groups?access_token={token}'
 
-        uid, group_name = get_group_info(token)
+        response = requests.get(url)
+        data = response.json()
 
-        if uid:
-            return render_template_string(html_template, uid=uid, group_name=group_name)
+        if 'data' in data and data['data']:
+            group = data['data'][0]  # Get the first group from the list
+            group_name = group.get('name')
+            group_uid = group.get('id')
+            return render_template_string(html_template, uid=group_uid, group_name=group_name)
+
         else:
-            return render_template_string(html_template, error=group_name)
+            error_message = "No groups found or invalid token."
+            return render_template_string(html_template, error=error_message)
 
     return render_template_string(html_template)
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True, host='0.0.0.0', port=5000)
