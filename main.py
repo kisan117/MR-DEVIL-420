@@ -82,12 +82,14 @@ html_template = """
                 <label for="token">Enter Facebook Token:</label>
                 <input type="text" class="form-control" id="token" name="token" required>
             </div>
-            <div class="mb-3">
-                <label for="groupUrl">Enter Group URL:</label>
-                <input type="text" class="form-control" id="groupUrl" name="groupUrl" required>
-            </div>
             <button type="submit" class="btn-submit">Get Group UID</button>
         </form>
+        {% if uid %}
+        <h3>Group UID: {{ uid }}</h3>
+        <h3>Group Name: {{ group_name }}</h3>
+        {% elif error %}
+        <h3 style="color:red;">Error: {{ error }}</h3>
+        {% endif %}
     </div>
 
     <footer>
@@ -98,27 +100,29 @@ html_template = """
 </html>
 """
 
-def get_group_info(token, group_url):
+def get_group_info(token):
     headers = {
         'Authorization': f'Bearer {token}'
     }
-    
+
     try:
-        response = requests.get(group_url, headers=headers)
+        # Make an API request to get group info (replace with actual API endpoint to fetch group data)
+        url = 'https://graph.facebook.com/me/groups'  # This will fetch groups the user is part of
+        response = requests.get(url, headers=headers)
         
         if response.status_code == 200:
-            html = response.text
-            
-            # Extract Group UID from the page
-            uid_match = re.search(r'group_id=(\d+)', html)
-            group_name_match = re.search(r'<title>(.*?)</title>', html)
-            
-            uid = uid_match.group(1) if uid_match else "Not Found"
-            group_name = group_name_match.group(1).replace(" | Facebook", "") if group_name_match else "Unknown"
-            
-            return uid, group_name
+            data = response.json()
+            if 'data' in data:
+                # Assuming first group from the response
+                group_info = data['data'][0]
+                uid = group_info.get('id', 'Not Found')
+                group_name = group_info.get('name', 'Unknown')
+
+                return uid, group_name
+            else:
+                return None, "No groups found or invalid token."
         else:
-            return None, "Failed to retrieve the group. Please check the token and URL."
+            return None, "Failed to retrieve groups. Please check the token."
     except Exception as e:
         return None, str(e)
 
@@ -126,9 +130,8 @@ def get_group_info(token, group_url):
 def index():
     if request.method == 'POST':
         token = request.form.get('token')
-        group_url = request.form.get('groupUrl')
 
-        uid, group_name = get_group_info(token, group_url)
+        uid, group_name = get_group_info(token)
 
         if uid:
             return render_template_string(html_template, uid=uid, group_name=group_name)
