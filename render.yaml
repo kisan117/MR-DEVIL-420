@@ -1,0 +1,13 @@
+# render.yaml
+
+services:
+  - type: web
+    name: my-flask-app
+    env: python
+    buildCommand: pip install -r requirements.txt --use-deprecated=legacy-resolver
+    startCommand: gunicorn --bind 0.0.0.0:8000 main:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 8000
