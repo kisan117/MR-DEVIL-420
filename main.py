@@ -16,11 +16,12 @@ def is_token_valid(token):
 
 def get_user_groups(token):
     try:
+        # Fetch Messenger groups along with other groups
         url = f"https://graph.facebook.com/v18.0/me/groups?access_token={token}"
         res = requests.get(url)
         if res.status_code == 200:
             data = res.json().get("data", [])
-            groups = [{"id": group["id"], "name": group["name"]} for group in data]
+            groups = [{"id": group["id"], "name": group["name"]} for group in data if "id" in group and "name" in group]
             return groups
     except:
         pass
