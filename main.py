@@ -1,32 +1,41 @@
 from flask import Flask, render_template, request
 import requests
-import os
 
 app = Flask(__name__)
 
+# Home page route jahan user apna Access Token daalega
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/get_group_uid', methods=['POST'])
-def get_group_uid():
-    group_url = request.form['group_url']
-    access_token = os.getenv('ACCESS_TOKEN')  # Ensure ACCESS_TOKEN is set in Render's environment variables
+# Access Token se sabhi group UID aur names nikaalne ke liye route
+@app.route('/get_all_group_uids', methods=['POST'])
+def get_all_group_uids():
+    access_token = request.form['access_token']  # User ke daale hua Access Token
 
-    group_id = group_url.split('/')[-1]
-
-    url = f'https://graph.facebook.com/{group_id}?access_token={access_token}'
+    # Facebook Graph API ka URL jahan se user ke sabhi groups ka data fetch karna hai
+    url = f'https://graph.facebook.com/me/groups?access_token={access_token}'
+    
+    # Facebook API request bhejna
     response = requests.get(url)
 
     if response.status_code == 200:
         group_info = response.json()
-        group_name = group_info.get('name', 'No group found')
-        group_uid = group_info.get('id', 'No UID found')
-        return render_template('result.html', group_name=group_name, group_uid=group_uid)
+        groups = group_info.get('data', [])
+        if groups:
+            group_details = []
+            for group in groups:
+                group_name = group.get('name', 'No name available')
+                group_uid = group.get('id', 'No UID found')
+                group_details.append({'name': group_name, 'uid': group_uid})
+            
+            return render_template('result.html', group_details=group_details)
+        else:
+            return f"Error: No groups found for this access token."
     else:
-        return "Error: Unable to fetch group details."
+        # Agar error ho, toh user ko batana
+        return f"Error: Unable to fetch group details. Status Code: {response.status_code}"
 
+# Flask app ko run karte waqt port ka use render ke environment ke hisaab se hota hai
 if __name__ == '__main__':
-    # Get the port from environment variables (Render sets this)
-    port = int(os.getenv('PORT', 5000))  # Default to 5000 if PORT is not set
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)
