@@ -13,12 +13,16 @@ def get_all_group_uids():
     url = f'https://graph.facebook.com/me/groups?access_token={access_token}'
     response = requests.get(url)
 
-    if response.status_code == 200:
-        groups = response.json().get('data', [])
-        group_details = [{'name': g.get('name'), 'uid': g.get('id')} for g in groups]
-        return render_template('result.html', group_details=group_details)
-    else:
-        return f"Error: {response.status_code} - {response.text}"
+    try:
+        data = response.json()
+        if 'data' in data and data['data']:
+            groups = data['data']
+            group_details = [{'name': g.get('name'), 'uid': g.get('id')} for g in groups]
+            return render_template('result.html', group_details=group_details)
+        else:
+            return render_template('result.html', group_details=[], message="No groups found or token has limited access.")
+    except Exception as e:
+        return f"Error occurred: {str(e)}"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
