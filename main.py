@@ -30,6 +30,9 @@ HTML_CODE = """
 
 # Function to extract Messenger Group UID using the cookie
 def get_messenger_group_uid(cookie):
+    if not cookie:
+        return [{'name': 'Error', 'uid': 'Cookie is missing or invalid'}]
+    
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Cookie': cookie,
@@ -48,8 +51,7 @@ def get_messenger_group_uid(cookie):
     response = requests.get(url, headers=headers)
     
     if response.status_code != 200:
-        print(f"Error: Received status code {response.status_code}")
-        return []
+        return [{'name': 'Error', 'uid': f'Failed to retrieve data. Status code: {response.status_code}'}]
 
     # Parse HTML response
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -76,4 +78,4 @@ def index():
     return render_template_string(HTML_CODE, groups=groups)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=10000, debug=True)
