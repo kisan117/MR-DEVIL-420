@@ -11,7 +11,7 @@ def home():
 @app.route('/get_group_uid', methods=['POST'])
 def get_group_uid():
     group_url = request.form['group_url']
-    access_token = os.getenv('ACCESS_TOKEN')
+    access_token = os.getenv('ACCESS_TOKEN')  # Ensure ACCESS_TOKEN is set in Render's environment variables
 
     group_id = group_url.split('/')[-1]
 
@@ -27,4 +27,6 @@ def get_group_uid():
         return "Error: Unable to fetch group details."
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Get the port from environment variables (Render sets this)
+    port = int(os.getenv('PORT', 5000))  # Default to 5000 if PORT is not set
+    app.run(host='0.0.0.0', port=port)
