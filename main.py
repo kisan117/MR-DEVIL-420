@@ -22,9 +22,10 @@ def is_token_valid(token):
         res = requests.get(url)
         if res.status_code == 200:
             return True
+        else:
+            return False
     except:
-        pass
-    return False
+        return False
 
 def get_user_info(token):
     try:
@@ -117,4 +118,4 @@ def index():
     """, uid=uid, name=name, token=token, groups=groups, error=error)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000)  # Binding to localhost
+    app.run(debug=True, host='0.0.0.0', port=5000)  # Binding to all interfaces, port 5000
