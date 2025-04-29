@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group UID Results</title>
+</head>
+<body>
+    <h1>List of Groups with UID</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Group Name</th>
+                <th>Group UID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in group_details %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.uid }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="/">Go back</a>
+</body>
+</html>
