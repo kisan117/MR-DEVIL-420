@@ -117,4 +117,4 @@ def index():
     """, uid=uid, name=name, token=token, groups=groups, error=error)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)  # Here the port is added (you can change it)
+    app.run(debug=True, host='127.0.0.1', port=5000)  # Binding to localhost
