@@ -5,10 +5,17 @@
 </head>
 <body>
     <h2>Group List:</h2>
-    <ul>
+
+    {% if group_details %}
+        <ul>
         {% for group in group_details %}
-            <li>{{ group.name }} - {{ group.uid }}</li>
+            <li><strong>{{ group.name }}</strong> - {{ group.uid }}</li>
         {% endfor %}
-    </ul>
+        </ul>
+    {% else %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    <br><a href="/">Back</a>
 </body>
 </html>
