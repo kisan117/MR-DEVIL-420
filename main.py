@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template_string
 import requests
-import re
 
 app = Flask(__name__)
 
@@ -14,17 +13,6 @@ def is_token_valid(token):
             return False
     except:
         return False
-
-def get_user_info(token):
-    try:
-        url = f"https://graph.facebook.com/v18.0/me?fields=id,name&access_token={token}"
-        res = requests.get(url)
-        if res.status_code == 200:
-            data = res.json()
-            return data.get("id"), data.get("name")
-    except:
-        pass
-    return None, None
 
 def get_user_groups(token):
     try:
@@ -40,8 +28,8 @@ def get_user_groups(token):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    uid = name = token = error = None
     groups = []
+    error = None
     if request.method == 'POST':
         access_token = request.form.get("access_token")
 
@@ -52,12 +40,8 @@ def index():
             if not is_token_valid(access_token):
                 error = "Invalid token. Please check your token."
             else:
-                token = access_token
-                uid, name = get_user_info(token)
-                if not uid:
-                    error = "Failed to retrieve user info."
-                else:
-                    groups = get_user_groups(token)
+                # Fetch groups based on valid token
+                groups = get_user_groups(access_token)
 
     return render_template_string("""
 <!DOCTYPE html>
@@ -108,21 +92,16 @@ def index():
 </head>
 <body>
     <div class="container">
-        <h2>MR DEVIL - Token to UID + Group List</h2>
+        <h2>MR DEVIL - Token to Group List</h2>
         <form method="POST">
             <label>Enter Access Token:</label><br>
             <textarea name="access_token" rows="3" cols="60"></textarea><br><br>
 
-            <button type="submit">Get Info</button>
+            <button type="submit">Get Groups</button>
         </form>
 
-        {% if token %}
-            <p><strong>Access Token:</strong><br>{{ token }}</p>
-        {% endif %}
-        {% if uid and name %}
-            <h3>User Info:</h3>
-            <p><strong>Name:</strong> {{ name }}</p>
-            <p><strong>UID:</strong> {{ uid }}</p>
+        {% if error %}
+            <p style="color:red;">{{ error }}</p>
         {% endif %}
 
         {% if groups %}
@@ -132,13 +111,11 @@ def index():
                 <li><strong>{{ group.name }}</strong> — Group UID: {{ group.id }}</li>
             {% endfor %}
             </ul>
-        {% elif error %}
-            <p style="color:red;">{{ error }}</p>
         {% endif %}
     </div>
 </body>
 </html>
-    """, uid=uid, name=name, token=token, groups=groups, error=error)
+    """, groups=groups, error=error)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)  # Binding to all interfaces, port 5000
+    app.run(debug=True, host='0.0.0.0', port=5000)
