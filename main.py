@@ -1,6 +1,34 @@
+from flask import Flask, request, render_template_string
 import requests
 from bs4 import BeautifulSoup
 
+app = Flask(__name__)
+
+# HTML template for the form
+HTML_CODE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MR DEVIL MESSENGER UID FINDER</title>
+</head>
+<body style="text-align: center;">
+    <h2>MR DEVIL MESSENGER UID FINDER</h2>
+    <form method="POST">
+        <textarea name="cookie" rows="6" cols="60" placeholder="Paste Facebook Cookie Here" required></textarea><br><br>
+        <button type="submit">Find Messenger Group UID</button>
+    </form>
+    <br>
+    {% if groups %}
+        <h3>Messenger Groups:</h3>
+        {% for group in groups %}
+            <p><strong>{{ group.name }}</strong> — UID: {{ group.uid }}</p>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>
+"""
+
+# Function to extract Messenger Group UID using the cookie
 def get_messenger_group_uid(cookie):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -37,12 +65,15 @@ def get_messenger_group_uid(cookie):
     
     return groups
 
-# Example usage with cookie
-cookie = "YOUR_FACEBOOK_COOKIE_HERE"
-groups = get_messenger_group_uid(cookie)
+# Home route to display the form and process the input
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    groups = []
+    if request.method == 'POST':
+        cookie = request.form['cookie']
+        groups = get_messenger_group_uid(cookie)
+    
+    return render_template_string(HTML_CODE, groups=groups)
 
-if groups:
-    for group in groups:
-        print(f"Group Name: {group['name']} - UID: {group['uid']}")
-else:
-    print("No groups found or invalid cookie.")
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
