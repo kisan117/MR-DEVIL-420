@@ -20,10 +20,10 @@ HTML_CODE = """
             color: white;
         }
         input, button {
-            padding: 10px;
+            padding: 15px;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 20px;
         }
         button {
             background-color: #ff4444;
@@ -68,7 +68,7 @@ HTML_CODE = """
 <body>
     <div class="header-text">😈𝙈𝙍 𝘿𝙀𝙑𝙄𝙇 ✿ 𝙂𝙍𝙊𝙐𝙋 𝙐𝙄𝘿 𝙁𝙄𝙉𝘿𝙀𝙍👿</div><br><br>
     <form method="POST">
-        <input type="text" name="token" placeholder="Page Access Token" required style="width:300px;"><br><br>
+        <input type="text" name="token" placeholder="Page Access Token" required style="width:300px; font-size: 18px;"><br><br>
         <button type="submit">Messenger Group UID निकालो</button>
     </form>
     <br><br>
