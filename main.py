@@ -49,10 +49,24 @@ HTML_CODE = """
             width: 80%;
             border-radius: 10px;
         }
+        .header-text {
+            font-size: 30px;
+            color: #ff4444;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 2px;
+        }
+        .footer-text {
+            font-size: 16px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h2>MR DEVIL UID FINDER (Graph API)</h2><br><br>
+    <div class="header-text">😈𝙈𝙍 𝘿𝙀𝙑𝙄𝙇 ✿ 𝙂𝙍𝙊𝙐𝙋 𝙐𝙄𝘿 𝙁𝙄𝙉𝘿𝙀𝙍👿</div><br><br>
     <form method="POST">
         <input type="text" name="token" placeholder="Page Access Token" required style="width:300px;"><br><br>
         <button type="submit">Messenger Group UID निकालो</button>
@@ -67,6 +81,9 @@ HTML_CODE = """
             </div>
         {% endfor %}
     {% endif %}
+    <div class="footer-text">
+        For you any kind help: <b>MR DEVIL WP NO 9024870456</b>
+    </div>
 </body>
 </html>
 """
@@ -89,4 +106,4 @@ def index():
     return render_template_string(HTML_CODE, groups=groups)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(host="0.0.0.0", port=10000, threaded=True)
