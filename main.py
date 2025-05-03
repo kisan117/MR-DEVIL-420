@@ -1,111 +1,109 @@
-from flask import Flask, render_template_string, request
+from flask import Flask, request, render_template_string
 import requests
-import time
-import threading
 
 app = Flask(__name__)
 
-# Function to send a message to Facebook Messenger
-def send_message(access_token, thread_id, message):
-    url = f"https://graph.facebook.com/v12.0/{thread_id}/messages"
-    payload = {
-        'message': message,
-        'access_token': access_token
-    }
-    response = requests.post(url, data=payload)
-    return response.json()
-
-# Function to handle multiple messages
-def send_multiple_messages(access_token, thread_id, messages, delay):
-    for msg in messages:
-        send_message(access_token, thread_id, msg)
-        time.sleep(delay)
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        access_token = request.form['access_token']
-        thread_id = request.form['thread_id']
-        message = request.form['message']
-        message_count = int(request.form['message_count'])
-        delay = int(request.form['delay'])
-        
-        # Prepare a list of messages to send
-        messages = [message] * message_count
-        # Start the message sending process in a new thread
-        thread = threading.Thread(target=send_multiple_messages, args=(access_token, thread_id, messages, delay))
-        thread.start()
-
-        return "Messages are being sent!"
-
-    return render_template_string('''
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Facebook Message Sender</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f4f9;
-                    padding: 20px;
-                }
-                .container {
-                    width: 50%;
-                    margin: 0 auto;
-                    background-color: white;
-                    padding: 20px;
-                    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-                }
-                h1 {
-                    text-align: center;
-                }
-                input, textarea {
-                    width: 100%;
-                    padding: 10px;
-                    margin: 10px 0;
-                    border-radius: 5px;
-                    border: 1px solid #ddd;
-                }
-                button {
-                    padding: 10px 20px;
-                    background-color: #28a745;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                }
-                button:hover {
-                    background-color: #218838;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Facebook Message Sender</h1>
-                <form method="POST">
-                    <label for="access_token">Access Token:</label>
-                    <input type="text" id="access_token" name="access_token" required>
-
-                    <label for="thread_id">Thread ID (Facebook Chat ID):</label>
-                    <input type="text" id="thread_id" name="thread_id" required>
-
-                    <label for="message">Message:</label>
-                    <textarea id="message" name="message" required></textarea>
-
-                    <label for="message_count">Number of Messages to Send:</label>
-                    <input type="number" id="message_count" name="message_count" required>
-
-                    <label for="delay">Delay Between Messages (seconds):</label>
-                    <input type="number" id="delay" name="delay" required>
-
-                    <button type="submit">Send Messages</button>
-                </form>
+HTML_CODE = """
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>MR DEVIL UID FINDER (Graph API)</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: sans-serif;
+            background-image: url('https://iili.io/3hK9Vqv.md.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
+        }
+        input, button {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 20px;
+        }
+        button {
+            background-color: #ff4444;
+            color: white;
+            cursor: pointer;
+        }
+        h2, h3 {
+            background-color: rgba(0, 0, 0, 0.5);
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        form {
+            background-color: rgba(0, 0, 0, 0.4);
+            display: inline-block;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .group-box {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            margin: 10px auto;
+            width: 80%;
+            border-radius: 10px;
+        }
+        .header-text {
+            font-size: 30px;
+            color: #ff4444;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 2px;
+        }
+        .footer-text {
+            font-size: 16px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-text">😈𝙈𝙍 𝘿𝙀𝙑𝙄𝙇 ✿ 𝙂𝙍𝙊𝙐𝙋 𝙐𝙄𝘿 𝙁𝙄𝙉𝘿𝙀𝙍👿</div><br><br>
+    <form method="POST">
+        <input type="text" name="token" placeholder="Page Access Token" required style="width:300px; font-size: 18px;"><br><br>
+        <button type="submit">Messenger Group UID निकालो</button>
+    </form>
+    <br><br>
+    {% if groups %}
+        <h3>Messenger Conversations:</h3>
+        {% for g in groups %}
+            <div class="group-box">
+                <p><b>नाम:</b> {{ g.get('name', 'नाम नहीं मिला') }}</p>
+                <p><b>UID:</b> {{ g['id'] }}</p>
             </div>
-        </body>
-        </html>
-    ''')
+        {% endfor %}
+    {% endif %}
+    <div class="footer-text">
+        For you any kind help: <b>MR DEVIL WP NO 9024870456</b>
+    </div>
+</body>
+</html>
+"""
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)  # Run on port 5000
+@app.route("/", methods=["GET", "POST"])
+def index():
+    groups = []
+    if request.method == "POST":
+        token = request.form.get("token")
+        url = f"https://graph.facebook.com/v19.0/me/conversations?fields=name,id&access_token={token}"
+        try:
+            res = requests.get(url)
+            if res.status_code == 200:
+                data = res.json()
+                groups = data.get("data", [])
+            else:
+                groups = [{"id": f"Error: {res.status_code} - {res.text}"}]
+        except Exception as e:
+            groups = [{"id": f"Exception: {str(e)}"}]
+    return render_template_string(HTML_CODE, groups=groups)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000, threaded=True)
